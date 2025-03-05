@@ -1,0 +1,50 @@
+# 加载必要的包
+library(circlize)
+library(RColorBrewer)
+library(ComplexHeatmap)
+
+# 重新定义颜色映射，调整方向（让 -1 更深）
+color_mapping_negative <- colorRamp2(
+  c(-1, -0.3),  # 负相关最强（-1）对应深色，最弱（-0.3）对应浅色
+  c("#313695", "#91bfdb")  # 让负相关更强的变深
+)
+
+# 绘制和弦图
+chordDiagram(
+  x = df_negative[, 1:2],  
+  grid.col = grid.col_negative,      
+  transparency = 0.1,  # 降低透明度，增强颜色对比
+  col = color_mapping_negative(df_negative$Correlation),  
+  annotationTrack = "grid"
+)
+
+# 添加基因名称
+circos.track(track.index = 1, panel.fun = function(x, y) {
+  sector_name = get.cell.meta.data("sector.index")  
+  xlim = get.cell.meta.data("xlim")  
+  ylim = get.cell.meta.data("ylim")  
+  
+  circos.text(mean(xlim), ylim[1] + 0.3, sector_name, 
+              facing = "clockwise",  
+              niceFacing = TRUE,      
+              adj = c(0, 0.5),        
+              cex = 0.5)
+})
+
+# 添加标题
+title(main = "Chord Diagram of Negatively Correlated Gene-Pseudogene Pairs")
+
+# ------------------------- 添加图例 -------------------------
+# 创建竖直图例
+lgd_negative <- Legend(
+  col_fun = color_mapping_negative,
+  title = "r-value",
+  at = c(-0.9, -0.7, -0.5, -0.3),  # 指定显示的刻度
+  labels = c("-0.9", "-0.7", "-0.5", "-0.3"),
+  direction = "vertical",
+  legend_height = unit(3, "cm"),
+  title_position = "topcenter"
+)
+
+# 绘制图例到右侧
+draw(lgd_negative, x = unit(0.85, "npc"), y = unit(0.5, "npc"))
